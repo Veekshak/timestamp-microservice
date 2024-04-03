@@ -13,6 +13,28 @@ app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 2
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static("public"));
 
+let millisecond;
+function toUTCTimeStamp(value) {
+  return value.toUTCString();
+}
+
+function ifString(date, res) {
+  const unixTimeStamp = date.getTime();
+  const utcTimeStamp = toUTCTimeStamp(date);
+
+  res.send({ unix: parseInt(unixTimeStamp), utc: utcTimeStamp });
+}
+
+function ifMillisecond(date, res) {
+  const utcTimeStamp = toUTCTimeStamp(date);
+  res.send({ unix: millisecond, utc: utcTimeStamp });
+}
+
+app.get("/api", (req, res) => {
+  const currentDate = new Date();
+  ifString(currentDate, res);
+});
+
 app.route("/api/:date").get((req, res) => {
   const data = req.params.date;
 
@@ -20,31 +42,16 @@ app.route("/api/:date").get((req, res) => {
     if (isNaN(data)) {
       const date = new Date(data);
       if (date == "Invalid Date")
-        return res.status(400).send({ message: "Invalid Date" });
-      else ifString(date);
+        return res.status(400).send({ error: "Invalid Date" });
+      else ifString(date, res);
     } else {
-      const millisecond = parseInt(data);
+      millisecond = parseInt(data);
       const date = new Date(millisecond);
-      ifMillisecond(date);
+      console.log;
+      ifMillisecond(date, res);
     }
   } catch (error) {
-    return res.status(400).send({ message: error });
-  }
-
-  function toUTCTimeStamp(value) {
-    return value.toUTCString();
-  }
-
-  function ifString(date) {
-    const unixTimeStamp = date.getTime();
-    const utcTimeStamp = toUTCTimeStamp(date);
-
-    res.send({ unix: unixTimeStamp, utc: utcTimeStamp });
-  }
-
-  function ifMillisecond(date) {
-    const utcTimeStamp = toUTCTimeStamp(date);
-    res.send({ unix: data, utc: utcTimeStamp });
+    return res.status(400).send({ error });
   }
 });
 
